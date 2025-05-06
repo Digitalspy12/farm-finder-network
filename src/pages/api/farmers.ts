@@ -1,39 +1,76 @@
 
 import { promises as fs } from 'fs';
 import path from 'path';
-import type { NextApiRequest, NextApiResponse } from 'next';
 import { Farmer } from '../../types';
 
 const dataFilePath = path.join(process.cwd(), 'src/data/farmers.json');
 
-export default async function handler(req: NextApiRequest, res: NextApiResponse) {
+export async function getFarmers() {
   try {
-    // Read the existing data
     const jsonData = await fs.readFile(dataFilePath, 'utf8');
-    let farmers: Farmer[] = JSON.parse(jsonData);
-    
-    if (req.method === 'GET') {
-      return res.status(200).json(farmers);
+    return JSON.parse(jsonData) as Farmer[];
+  } catch (error) {
+    if ((error as NodeJS.ErrnoException).code === 'ENOENT') {
+      // File doesn't exist, initialize with empty array
+      await fs.writeFile(dataFilePath, JSON.stringify([], null, 2));
+      return [];
     }
+    throw error;
+  }
+}
+
+export async function addFarmer(farmer: Omit<Farmer, 'id'>) {
+  try {
+    let farmers = await getFarmers();
     
-    if (req.method === 'POST') {
-      const newFarmer: Farmer = req.body;
-      
-      // Generate a unique ID
-      const maxId = farmers.length > 0 
-        ? Math.max(...farmers.map(f => f.id))
-        : 0;
-      newFarmer.id = maxId + 1;
-      
-      farmers.push(newFarmer);
-      await fs.writeFile(dataFilePath, JSON.stringify(farmers, null, 2));
-      
-      return res.status(201).json(newFarmer);
-    }
+    // Generate a unique ID
+    const maxId = farmers.length > 0 
+      ? Math.max(...farmers.map(f => f.id))
+      : 0;
+    const newFarmer: Farmer = { ...farmer, id: maxId + 1 };
     
-    return res.status(405).json({ message: 'Method not allowed' });
+    farmers.push(newFarmer);
+    await fs.writeFile(dataFilePath, JSON.stringify(farmers, null, 2));
+    
+    return newFarmer;
   } catch (error) {
     console.error('API error:', error);
-    return res.status(500).json({ message: 'Internal server error' });
+    throw error;
+  }
+}
+
+export async function getFarmerById(id: number) {
+  const farmers = await getFarmers();
+  return farmers.find(f => f.id === id);
+}
+
+export async function updateFarmer(id: number, farmer: Partial<Farmer>) {
+  try {
+    let farmers = await getFarmers();
+    const index = farmers.findIndex(f => f.id === id);
+    
+    if (index === -1) {
+      throw new Error('Farmer not found');
+    }
+    
+    farmers[index] = { ...farmers[index], ...farmer, id };
+    await fs.writeFile(dataFilePath, JSON.stringify(farmers, null, 2));
+    
+    return farmers[index];
+  } catch (error) {
+    console.error('API error:', error);
+    throw error;
+  }
+}
+
+export async function deleteFarmer(id: number) {
+  try {
+    let farmers = await getFarmers();
+    farmers = farmers.filter(f => f.id !== id);
+    await fs.writeFile(dataFilePath, JSON.stringify(farmers, null, 2));
+    return true;
+  } catch (error) {
+    console.error('API error:', error);
+    throw error;
   }
 }

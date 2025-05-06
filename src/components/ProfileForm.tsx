@@ -6,8 +6,17 @@ import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { toast } from "sonner";
-import { fetchData, postData, updateData } from "@/utils/apiUtils";
 import { Farmer, Distributor } from "@/types";
+import {
+  addFarmer,
+  getFarmerById,
+  updateFarmer
+} from "@/pages/api/farmers";
+import {
+  addDistributor,
+  getDistributorById,
+  updateDistributor
+} from "@/pages/api/distributors";
 
 export default function ProfileForm() {
   const { userRole, userId, setUserId } = useRole();
@@ -30,22 +39,33 @@ export default function ProfileForm() {
   );
   const [isLoading, setIsLoading] = useState(false);
 
-  const endpoint = userRole === "farmer" ? "farmers" : "distributors";
-
   useEffect(() => {
     const loadUserData = async () => {
       if (userId) {
         setIsLoading(true);
-        const data = await fetchData(`${endpoint}/${userId}`);
-        if (data) {
-          setFormData(data);
+        try {
+          let data;
+          
+          if (userRole === "farmer") {
+            data = await getFarmerById(userId);
+          } else {
+            data = await getDistributorById(userId);
+          }
+          
+          if (data) {
+            setFormData(data);
+          }
+        } catch (error) {
+          console.error("Error loading user data:", error);
+          toast.error("Failed to load your profile");
+        } finally {
+          setIsLoading(false);
         }
-        setIsLoading(false);
       }
     };
     
     loadUserData();
-  }, [userId, endpoint]);
+  }, [userId, userRole]);
 
   const handleInputChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     const { name, value } = e.target;
@@ -71,17 +91,26 @@ export default function ProfileForm() {
       let response;
       
       if (userId) {
-        response = await updateData(endpoint, userId, formData);
+        // Update existing profile
+        if (userRole === "farmer") {
+          response = await updateFarmer(userId, formData);
+        } else {
+          response = await updateDistributor(userId, formData);
+        }
       } else {
-        response = await postData(endpoint, formData);
+        // Create new profile
+        if (userRole === "farmer") {
+          response = await addFarmer(formData as Omit<Farmer, 'id'>);
+        } else {
+          response = await addDistributor(formData as Omit<Distributor, 'id'>);
+        }
+        
         if (response && response.id) {
           setUserId(response.id);
         }
       }
       
-      if (response) {
-        toast.success("Profile saved successfully");
-      }
+      toast.success("Profile saved successfully");
     } catch (error) {
       console.error("Profile save error:", error);
       toast.error("Failed to save profile");

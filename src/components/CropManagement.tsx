@@ -6,8 +6,15 @@ import { Input } from "@/components/ui/input";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { toast } from "sonner";
 import { Plus, X, Edit, Check } from "lucide-react";
-import { fetchData, postData, updateData } from "@/utils/apiUtils";
 import { Farmer, Distributor } from "@/types";
+import {
+  getFarmerById,
+  updateFarmer
+} from "@/pages/api/farmers";
+import {
+  getDistributorById,
+  updateDistributor
+} from "@/pages/api/distributors";
 
 export default function CropManagement() {
   const { userRole, userId } = useRole();
@@ -18,23 +25,34 @@ export default function CropManagement() {
   const [editedCrop, setEditedCrop] = useState("");
   const [isLoading, setIsLoading] = useState(false);
 
-  const endpoint = userRole === "farmer" ? "farmers" : "distributors";
-
   useEffect(() => {
     const loadUserData = async () => {
       if (userId) {
         setIsLoading(true);
-        const data = await fetchData(`${endpoint}/${userId}`);
-        if (data) {
-          setUserData(data);
-          setCrops(data.crops || []);
+        try {
+          let data;
+          
+          if (userRole === "farmer") {
+            data = await getFarmerById(userId);
+          } else {
+            data = await getDistributorById(userId);
+          }
+          
+          if (data) {
+            setUserData(data);
+            setCrops(data.crops || []);
+          }
+        } catch (error) {
+          console.error("Error loading user data:", error);
+          toast.error("Failed to load your crop data");
+        } finally {
+          setIsLoading(false);
         }
-        setIsLoading(false);
       }
     };
     
     loadUserData();
-  }, [userId, endpoint]);
+  }, [userId, userRole]);
 
   const handleAddCrop = async () => {
     if (!newCrop.trim()) {
@@ -55,12 +73,19 @@ export default function CropManagement() {
         crops: updatedCrops,
       };
       
-      const response = await updateData(endpoint, userId, updatedUserData);
-      
-      if (response) {
+      try {
+        if (userRole === "farmer") {
+          await updateFarmer(userId, updatedUserData);
+        } else {
+          await updateDistributor(userId, updatedUserData);
+        }
+        
         setCrops(updatedCrops);
         setNewCrop("");
         toast.success("Crop added successfully");
+      } catch (error) {
+        console.error("Error adding crop:", error);
+        toast.error("Failed to add crop");
       }
     }
   };
@@ -90,12 +115,19 @@ export default function CropManagement() {
         crops: updatedCrops,
       };
       
-      const response = await updateData(endpoint, userId, updatedUserData);
-      
-      if (response) {
+      try {
+        if (userRole === "farmer") {
+          await updateFarmer(userId, updatedUserData);
+        } else {
+          await updateDistributor(userId, updatedUserData);
+        }
+        
         setCrops(updatedCrops);
         setEditingIndex(null);
         toast.success("Crop updated successfully");
+      } catch (error) {
+        console.error("Error updating crop:", error);
+        toast.error("Failed to update crop");
       }
     }
   };
@@ -109,11 +141,18 @@ export default function CropManagement() {
         crops: updatedCrops,
       };
       
-      const response = await updateData(endpoint, userId, updatedUserData);
-      
-      if (response) {
+      try {
+        if (userRole === "farmer") {
+          await updateFarmer(userId, updatedUserData);
+        } else {
+          await updateDistributor(userId, updatedUserData);
+        }
+        
         setCrops(updatedCrops);
         toast.success("Crop removed successfully");
+      } catch (error) {
+        console.error("Error removing crop:", error);
+        toast.error("Failed to remove crop");
       }
     }
   };

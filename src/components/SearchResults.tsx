@@ -6,7 +6,6 @@ import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from "@/components/ui/card";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { Farmer, Distributor } from "@/types";
-import { fetchData } from "@/utils/apiUtils";
 import { Search, Phone, MapPin, Leaf } from "lucide-react";
 import { toast } from "sonner";
 
@@ -25,19 +24,25 @@ export default function SearchResults() {
   useEffect(() => {
     const fetchSearchResults = async () => {
       setIsLoading(true);
-      const data = await fetchData(searchEndpoint);
-      
-      if (data) {
-        setSearchResults(data);
-        setFilteredResults(data);
+      try {
+        const response = await fetch(`/api/${searchEndpoint}`);
+        const data = await response.json();
         
-        // Extract unique crops from all results
-        const allCrops = data.flatMap((item: Farmer | Distributor) => item.crops || []);
-        const uniqueCropsList = [...new Set(allCrops)];
-        setUniqueCrops(uniqueCropsList);
+        if (data) {
+          setSearchResults(data);
+          setFilteredResults(data);
+          
+          // Extract unique crops from all results
+          const allCrops = data.flatMap((item: Farmer | Distributor) => item.crops || []);
+          const uniqueCropsList = Array.from(new Set(allCrops)) as string[];
+          setUniqueCrops(uniqueCropsList);
+        }
+      } catch (error) {
+        console.error("Error fetching search results:", error);
+        toast.error("Failed to fetch search results");
+      } finally {
+        setIsLoading(false);
       }
-      
-      setIsLoading(false);
     };
     
     fetchSearchResults();
@@ -100,12 +105,13 @@ export default function SearchResults() {
         <CardContent>
           <div className="space-y-4">
             <div className="flex flex-col sm:flex-row gap-4">
-              <div className="flex-1">
+              <div className="flex-1 relative">
+                <MapPin className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground" />
                 <Input
                   placeholder="Enter location (city, state)"
                   value={location}
                   onChange={(e) => setLocation(e.target.value)}
-                  icon={MapPin}
+                  className="pl-10"
                 />
               </div>
               <Button 
