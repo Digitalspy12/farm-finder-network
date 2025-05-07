@@ -1,25 +1,20 @@
 
-import { promises as fs } from 'fs';
-import path from 'path';
 import { Distributor } from '../../types';
 
-const dataFilePath = path.join(process.cwd(), 'src/data/distributors.json');
+// Use localStorage instead of file system
+const STORAGE_KEY = 'distributors_data';
 
-export async function getDistributors() {
+export async function getDistributors(): Promise<Distributor[]> {
   try {
-    const jsonData = await fs.readFile(dataFilePath, 'utf8');
-    return JSON.parse(jsonData) as Distributor[];
+    const data = localStorage.getItem(STORAGE_KEY);
+    return data ? JSON.parse(data) : [];
   } catch (error) {
-    if ((error as NodeJS.ErrnoException).code === 'ENOENT') {
-      // File doesn't exist, initialize with empty array
-      await fs.writeFile(dataFilePath, JSON.stringify([], null, 2));
-      return [];
-    }
-    throw error;
+    console.error('Error reading distributors data:', error);
+    return [];
   }
 }
 
-export async function addDistributor(distributor: Omit<Distributor, 'id'>) {
+export async function addDistributor(distributor: Omit<Distributor, 'id'>): Promise<Distributor> {
   try {
     let distributors = await getDistributors();
     
@@ -30,7 +25,7 @@ export async function addDistributor(distributor: Omit<Distributor, 'id'>) {
     const newDistributor: Distributor = { ...distributor, id: maxId + 1 };
     
     distributors.push(newDistributor);
-    await fs.writeFile(dataFilePath, JSON.stringify(distributors, null, 2));
+    localStorage.setItem(STORAGE_KEY, JSON.stringify(distributors));
     
     return newDistributor;
   } catch (error) {
@@ -39,12 +34,12 @@ export async function addDistributor(distributor: Omit<Distributor, 'id'>) {
   }
 }
 
-export async function getDistributorById(id: number) {
+export async function getDistributorById(id: number): Promise<Distributor | undefined> {
   const distributors = await getDistributors();
   return distributors.find(d => d.id === id);
 }
 
-export async function updateDistributor(id: number, distributor: Partial<Distributor>) {
+export async function updateDistributor(id: number, distributor: Partial<Distributor>): Promise<Distributor> {
   try {
     let distributors = await getDistributors();
     const index = distributors.findIndex(d => d.id === id);
@@ -54,7 +49,7 @@ export async function updateDistributor(id: number, distributor: Partial<Distrib
     }
     
     distributors[index] = { ...distributors[index], ...distributor, id };
-    await fs.writeFile(dataFilePath, JSON.stringify(distributors, null, 2));
+    localStorage.setItem(STORAGE_KEY, JSON.stringify(distributors));
     
     return distributors[index];
   } catch (error) {
@@ -63,11 +58,11 @@ export async function updateDistributor(id: number, distributor: Partial<Distrib
   }
 }
 
-export async function deleteDistributor(id: number) {
+export async function deleteDistributor(id: number): Promise<boolean> {
   try {
     let distributors = await getDistributors();
     distributors = distributors.filter(d => d.id !== id);
-    await fs.writeFile(dataFilePath, JSON.stringify(distributors, null, 2));
+    localStorage.setItem(STORAGE_KEY, JSON.stringify(distributors));
     return true;
   } catch (error) {
     console.error('API error:', error);

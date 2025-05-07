@@ -1,25 +1,20 @@
 
-import { promises as fs } from 'fs';
-import path from 'path';
 import { Farmer } from '../../types';
 
-const dataFilePath = path.join(process.cwd(), 'src/data/farmers.json');
+// Use localStorage instead of file system
+const STORAGE_KEY = 'farmers_data';
 
-export async function getFarmers() {
+export async function getFarmers(): Promise<Farmer[]> {
   try {
-    const jsonData = await fs.readFile(dataFilePath, 'utf8');
-    return JSON.parse(jsonData) as Farmer[];
+    const data = localStorage.getItem(STORAGE_KEY);
+    return data ? JSON.parse(data) : [];
   } catch (error) {
-    if ((error as NodeJS.ErrnoException).code === 'ENOENT') {
-      // File doesn't exist, initialize with empty array
-      await fs.writeFile(dataFilePath, JSON.stringify([], null, 2));
-      return [];
-    }
-    throw error;
+    console.error('Error reading farmers data:', error);
+    return [];
   }
 }
 
-export async function addFarmer(farmer: Omit<Farmer, 'id'>) {
+export async function addFarmer(farmer: Omit<Farmer, 'id'>): Promise<Farmer> {
   try {
     let farmers = await getFarmers();
     
@@ -30,7 +25,7 @@ export async function addFarmer(farmer: Omit<Farmer, 'id'>) {
     const newFarmer: Farmer = { ...farmer, id: maxId + 1 };
     
     farmers.push(newFarmer);
-    await fs.writeFile(dataFilePath, JSON.stringify(farmers, null, 2));
+    localStorage.setItem(STORAGE_KEY, JSON.stringify(farmers));
     
     return newFarmer;
   } catch (error) {
@@ -39,12 +34,12 @@ export async function addFarmer(farmer: Omit<Farmer, 'id'>) {
   }
 }
 
-export async function getFarmerById(id: number) {
+export async function getFarmerById(id: number): Promise<Farmer | undefined> {
   const farmers = await getFarmers();
   return farmers.find(f => f.id === id);
 }
 
-export async function updateFarmer(id: number, farmer: Partial<Farmer>) {
+export async function updateFarmer(id: number, farmer: Partial<Farmer>): Promise<Farmer> {
   try {
     let farmers = await getFarmers();
     const index = farmers.findIndex(f => f.id === id);
@@ -54,7 +49,7 @@ export async function updateFarmer(id: number, farmer: Partial<Farmer>) {
     }
     
     farmers[index] = { ...farmers[index], ...farmer, id };
-    await fs.writeFile(dataFilePath, JSON.stringify(farmers, null, 2));
+    localStorage.setItem(STORAGE_KEY, JSON.stringify(farmers));
     
     return farmers[index];
   } catch (error) {
@@ -63,11 +58,11 @@ export async function updateFarmer(id: number, farmer: Partial<Farmer>) {
   }
 }
 
-export async function deleteFarmer(id: number) {
+export async function deleteFarmer(id: number): Promise<boolean> {
   try {
     let farmers = await getFarmers();
     farmers = farmers.filter(f => f.id !== id);
-    await fs.writeFile(dataFilePath, JSON.stringify(farmers, null, 2));
+    localStorage.setItem(STORAGE_KEY, JSON.stringify(farmers));
     return true;
   } catch (error) {
     console.error('API error:', error);
