@@ -7,16 +7,7 @@ import { Label } from "@/components/ui/label";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { toast } from "sonner";
 import { Farmer, Distributor } from "@/types";
-import {
-  addFarmer,
-  getFarmerById,
-  updateFarmer
-} from "@/pages/api/farmers";
-import {
-  addDistributor,
-  getDistributorById,
-  updateDistributor
-} from "@/pages/api/distributors";
+import { fetchData, postData, updateData } from "@/utils/apiUtils";
 
 export default function ProfileForm() {
   const { userRole, userId, setUserId } = useRole();
@@ -44,16 +35,12 @@ export default function ProfileForm() {
       if (userId) {
         setIsLoading(true);
         try {
-          let data;
+          const endpoint = userRole === "farmer" ? "farmers" : "distributors";
+          const allData = await fetchData(endpoint);
+          const userData = allData.find((item: any) => item.id === userId);
           
-          if (userRole === "farmer") {
-            data = await getFarmerById(userId);
-          } else {
-            data = await getDistributorById(userId);
-          }
-          
-          if (data) {
-            setFormData(data);
+          if (userData) {
+            setFormData(userData);
           }
         } catch (error) {
           console.error("Error loading user data:", error);
@@ -87,23 +74,15 @@ export default function ProfileForm() {
     setIsLoading(true);
     
     try {
-      // If user has an ID, update their profile, otherwise create a new one
+      const endpoint = userRole === "farmer" ? "farmers" : "distributors";
       let response;
       
       if (userId) {
         // Update existing profile
-        if (userRole === "farmer") {
-          response = await updateFarmer(userId, formData);
-        } else {
-          response = await updateDistributor(userId, formData);
-        }
+        response = await updateData(endpoint, userId, formData);
       } else {
         // Create new profile
-        if (userRole === "farmer") {
-          response = await addFarmer(formData as Omit<Farmer, 'id'>);
-        } else {
-          response = await addDistributor(formData as Omit<Distributor, 'id'>);
-        }
+        response = await postData(endpoint, formData);
         
         if (response && response.id) {
           setUserId(response.id);

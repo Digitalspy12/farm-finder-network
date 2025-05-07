@@ -7,14 +7,7 @@ import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { toast } from "sonner";
 import { Plus, X, Edit, Check } from "lucide-react";
 import { Farmer, Distributor } from "@/types";
-import {
-  getFarmerById,
-  updateFarmer
-} from "@/pages/api/farmers";
-import {
-  getDistributorById,
-  updateDistributor
-} from "@/pages/api/distributors";
+import { fetchData, updateData } from "@/utils/apiUtils";
 
 export default function CropManagement() {
   const { userRole, userId } = useRole();
@@ -30,13 +23,9 @@ export default function CropManagement() {
       if (userId) {
         setIsLoading(true);
         try {
-          let data;
-          
-          if (userRole === "farmer") {
-            data = await getFarmerById(userId);
-          } else {
-            data = await getDistributorById(userId);
-          }
+          const endpoint = userRole === "farmer" ? "farmers" : "distributors";
+          const allData = await fetchData(endpoint);
+          const data = allData.find((item: any) => item.id === userId);
           
           if (data) {
             setUserData(data);
@@ -74,11 +63,8 @@ export default function CropManagement() {
       };
       
       try {
-        if (userRole === "farmer") {
-          await updateFarmer(userId, updatedUserData);
-        } else {
-          await updateDistributor(userId, updatedUserData);
-        }
+        const endpoint = userRole === "farmer" ? "farmers" : "distributors";
+        await updateData(endpoint, userId, updatedUserData);
         
         setCrops(updatedCrops);
         setNewCrop("");
@@ -116,11 +102,8 @@ export default function CropManagement() {
       };
       
       try {
-        if (userRole === "farmer") {
-          await updateFarmer(userId, updatedUserData);
-        } else {
-          await updateDistributor(userId, updatedUserData);
-        }
+        const endpoint = userRole === "farmer" ? "farmers" : "distributors";
+        await updateData(endpoint, userId, updatedUserData);
         
         setCrops(updatedCrops);
         setEditingIndex(null);
@@ -142,11 +125,8 @@ export default function CropManagement() {
       };
       
       try {
-        if (userRole === "farmer") {
-          await updateFarmer(userId, updatedUserData);
-        } else {
-          await updateDistributor(userId, updatedUserData);
-        }
+        const endpoint = userRole === "farmer" ? "farmers" : "distributors";
+        await updateData(endpoint, userId, updatedUserData);
         
         setCrops(updatedCrops);
         toast.success("Crop removed successfully");

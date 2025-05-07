@@ -4,6 +4,7 @@ import { useNavigate } from "react-router-dom";
 import { useRole } from "@/contexts/RoleContext";
 import DashboardSidebar from "@/components/DashboardSidebar";
 import ProfileForm from "@/components/ProfileForm";
+import CropManagement from "@/components/CropManagement";
 
 const DistributorDashboard = () => {
   const { userRole } = useRole();
@@ -33,7 +34,10 @@ const DistributorDashboard = () => {
           <p>To get started, please complete your profile information below.</p>
         </div>
         
-        <ProfileForm />
+        <div className="space-y-10">
+          <ProfileForm />
+          <CropManagement />
+        </div>
       </div>
     </div>
   );
