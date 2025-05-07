@@ -16,30 +16,24 @@ const DistributorDashboard = () => {
     }
   }, [userRole, navigate]);
 
-  if (userRole !== "distributor") {
-    return null;
-  }
+  if (userRole !== "distributor") return null;
 
   return (
     <div className="dashboard-container">
       <DashboardSidebar activePage="dashboard" />
       
       <div className="flex-1 p-8">
-        <div className="page-container">
-          <h1 className="text-3xl font-bold mb-6">Distributor Dashboard</h1>
-          
-          <div className="mb-8">
-            <h2 className="text-2xl font-semibold mb-4">Welcome to CropLink!</h2>
-            <p className="mb-4">
-              This is your distributor dashboard where you can manage your profile, crops, and search for farmers.
-            </p>
-            <p>
-              To get started, please complete your profile information below.
-            </p>
-          </div>
-          
-          <ProfileForm />
+        <h1 className="text-3xl font-bold mb-6">Distributor Dashboard</h1>
+        
+        <div className="mb-8">
+          <h2 className="text-2xl font-semibold mb-4">Welcome to CropLink!</h2>
+          <p className="mb-4">
+            This is your distributor dashboard where you can manage your profile, crops, and search for farmers.
+          </p>
+          <p>To get started, please complete your profile information below.</p>
         </div>
+        
+        <ProfileForm />
       </div>
     </div>
   );

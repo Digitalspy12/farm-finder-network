@@ -26,7 +26,6 @@ export default function SearchResults() {
     const fetchSearchResults = async () => {
       setIsLoading(true);
       try {
-        // Use the fetchData utility from apiUtils to get data from localStorage
         const data = await fetchData(searchEndpoint);
         
         if (data) {
@@ -71,8 +70,7 @@ export default function SearchResults() {
       if (sortOption === "name") {
         return a.name.localeCompare(b.name);
       } else {
-        // Simple distance sorting based on location name length (placeholder)
-        // In a real app, we would calculate actual distance
+        // Sort based on location
         return a.location.length - b.location.length;
       }
     });
@@ -81,8 +79,6 @@ export default function SearchResults() {
   }, [searchResults, location, cropFilter, sortOption]);
 
   const handleSearch = () => {
-    // Trigger the useEffect by setting location state
-    // Real implementation would do additional validation
     toast.success("Search updated");
   };
 

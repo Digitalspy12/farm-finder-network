@@ -3,19 +3,9 @@
 
 export async function fetchData(endpoint: string) {
   try {
-    // For farmers endpoint
-    if (endpoint === 'farmers') {
-      const data = localStorage.getItem('farmers_data');
-      return data ? JSON.parse(data) : [];
-    }
-    
-    // For distributors endpoint
-    if (endpoint === 'distributors') {
-      const data = localStorage.getItem('distributors_data');
-      return data ? JSON.parse(data) : [];
-    }
-    
-    throw new Error(`Unknown endpoint: ${endpoint}`);
+    const storageKey = `${endpoint}_data`;
+    const data = localStorage.getItem(storageKey);
+    return data ? JSON.parse(data) : [];
   } catch (error) {
     console.error(`Error fetching data from ${endpoint}:`, error);
     return [];
@@ -24,28 +14,15 @@ export async function fetchData(endpoint: string) {
 
 export async function postData(endpoint: string, data: any) {
   try {
-    let storageKey: string;
-    let items: any[] = [];
-    let newItem;
-    
-    // Determine which collection to update
-    if (endpoint === 'farmers') {
-      storageKey = 'farmers_data';
-    } else if (endpoint === 'distributors') {
-      storageKey = 'distributors_data';
-    } else {
-      throw new Error(`Unknown endpoint: ${endpoint}`);
-    }
+    const storageKey = `${endpoint}_data`;
     
     // Get existing data
     const existingData = localStorage.getItem(storageKey);
-    if (existingData) {
-      items = JSON.parse(existingData);
-    }
+    const items = existingData ? JSON.parse(existingData) : [];
     
     // Generate a new ID
     const maxId = items.length > 0 ? Math.max(...items.map(item => item.id)) : 0;
-    newItem = { ...data, id: maxId + 1 };
+    const newItem = { ...data, id: maxId + 1 };
     
     // Add new item and save
     items.push(newItem);
@@ -60,16 +37,7 @@ export async function postData(endpoint: string, data: any) {
 
 export async function updateData(endpoint: string, id: number, data: any) {
   try {
-    let storageKey: string;
-    
-    // Determine which collection to update
-    if (endpoint === 'farmers') {
-      storageKey = 'farmers_data';
-    } else if (endpoint === 'distributors') {
-      storageKey = 'distributors_data';
-    } else {
-      throw new Error(`Unknown endpoint: ${endpoint}`);
-    }
+    const storageKey = `${endpoint}_data`;
     
     // Get existing data
     const existingData = localStorage.getItem(storageKey);
@@ -97,16 +65,7 @@ export async function updateData(endpoint: string, id: number, data: any) {
 
 export async function deleteData(endpoint: string, id: number) {
   try {
-    let storageKey: string;
-    
-    // Determine which collection to update
-    if (endpoint === 'farmers') {
-      storageKey = 'farmers_data';
-    } else if (endpoint === 'distributors') {
-      storageKey = 'distributors_data';
-    } else {
-      throw new Error(`Unknown endpoint: ${endpoint}`);
-    }
+    const storageKey = `${endpoint}_data`;
     
     // Get existing data
     const existingData = localStorage.getItem(storageKey);
