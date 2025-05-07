@@ -8,6 +8,7 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@
 import { Farmer, Distributor } from "@/types";
 import { Search, Phone, MapPin, Leaf } from "lucide-react";
 import { toast } from "sonner";
+import { fetchData } from "@/utils/apiUtils";
 
 export default function SearchResults() {
   const { userRole } = useRole();
@@ -25,8 +26,8 @@ export default function SearchResults() {
     const fetchSearchResults = async () => {
       setIsLoading(true);
       try {
-        const response = await fetch(`/api/${searchEndpoint}`);
-        const data = await response.json();
+        // Use the fetchData utility from apiUtils to get data from localStorage
+        const data = await fetchData(searchEndpoint);
         
         if (data) {
           setSearchResults(data);
