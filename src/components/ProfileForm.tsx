@@ -80,16 +80,16 @@ export default function ProfileForm() {
       if (userId) {
         // Update existing profile
         response = await updateData(endpoint, userId, formData);
+        toast.success("Profile saved successfully");
       } else {
         // Create new profile
         response = await postData(endpoint, formData);
         
         if (response && response.id) {
           setUserId(response.id);
+          toast.success("Profile saved successfully");
         }
       }
-      
-      toast.success("Profile saved successfully");
     } catch (error) {
       console.error("Profile save error:", error);
       toast.error("Failed to save profile");
