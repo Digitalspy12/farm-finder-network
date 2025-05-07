@@ -21,7 +21,7 @@ export async function postData(endpoint: string, data: any) {
     const items = existingData ? JSON.parse(existingData) : [];
     
     // Generate a new ID
-    const maxId = items.length > 0 ? Math.max(...items.map(item => item.id)) : 0;
+    const maxId = items.length > 0 ? Math.max(...items.map((item: any) => item.id)) : 0;
     const newItem = { ...data, id: maxId + 1 };
     
     // Add new item and save
