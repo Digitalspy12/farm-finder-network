@@ -94,7 +94,6 @@ export default function ProfileForm() {
       console.error("Profile save error:", error);
       toast.error("Failed to save profile");
     } finally {
-      // Make sure to set loading state back to false
       setIsLoading(false);
     }
   };
