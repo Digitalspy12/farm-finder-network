@@ -94,6 +94,7 @@ export default function ProfileForm() {
       console.error("Profile save error:", error);
       toast.error("Failed to save profile");
     } finally {
+      // Make sure to set loading state back to false
       setIsLoading(false);
     }
   };
@@ -116,6 +117,7 @@ export default function ProfileForm() {
                 value={formData.name}
                 onChange={handleInputChange}
                 placeholder="Enter your full name"
+                disabled={isLoading}
                 required
               />
             </div>
@@ -138,6 +140,7 @@ export default function ProfileForm() {
                     ? "Enter your farm's name"
                     : "Enter your company's name"
                 }
+                disabled={isLoading}
                 required
               />
             </div>
@@ -150,6 +153,7 @@ export default function ProfileForm() {
                 value={formData.contact}
                 onChange={handleInputChange}
                 placeholder="Enter your contact number"
+                disabled={isLoading}
                 required
               />
             </div>
@@ -162,6 +166,7 @@ export default function ProfileForm() {
                 value={formData.location}
                 onChange={handleInputChange}
                 placeholder="City, State"
+                disabled={isLoading}
                 required
               />
             </div>
